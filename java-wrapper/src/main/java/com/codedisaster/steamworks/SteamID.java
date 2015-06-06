@@ -2,7 +2,7 @@ package com.codedisaster.steamworks;
 
 public class SteamID extends SteamNativeHandle {
 
-	SteamID(long id) {
+	public SteamID(long id) {
 		super(id);
 	}
 

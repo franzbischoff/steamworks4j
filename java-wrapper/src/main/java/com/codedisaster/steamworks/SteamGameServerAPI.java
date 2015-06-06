@@ -13,7 +13,7 @@ public class SteamGameServerAPI {
 		AuthenticationAndSecure
 	}
 
-	static private boolean isRunning = false;
+	static public boolean isRunning = false;
 
 	static public boolean init(int ip, short steamPort, short gamePort, short queryPort,
 							   ServerMode serverMode, String versionString) {
