@@ -269,6 +269,7 @@ public class SteamGameServer extends SteamInterface {
 
 	/*JNI
 		#include <steam_gameserver.h>
+                #include "SteamUtils.h" // SteamUtils::log()
 		#include "SteamGameServerCallback.h"
 
 		static SteamGameServerCallback* callback = NULL;
@@ -435,8 +436,8 @@ public class SteamGameServer extends SteamInterface {
 	*/
 
 	static private native int beginAuthSession(long pointer, Buffer authTicket, int authTicketSizeInBytes, long steamID); /*
-		ISteamGameServer* server = (ISteamGameServer*) pointer;
-		return server->BeginAuthSession(authTicket, authTicketSizeInBytes, (uint64) steamID);
+		ISteamGameServer* server = (ISteamGameServer*) pointer; 
+                return server->BeginAuthSession(authTicket, authTicketSizeInBytes, (uint64) steamID);
 	*/
 
 	static private native void endAuthSession(long pointer, long steamID); /*
