@@ -133,7 +133,7 @@ public class SteamLeaderboards {
 
     public static final class FindOrCreateLeaderboardResult {
 
-        LeaderBoard leaderBoard;
+        public LeaderBoard leaderBoard;
     }
 
     public static final class GetLeaderboardEntries {
@@ -158,7 +158,7 @@ public class SteamLeaderboards {
         public long appId;
         public long boardId;
         public int count;
-        List<LeaderboardEntry> entries;
+        public List<LeaderboardEntry> entries;
 
         public GetLeaderboardEntriesResult() {
             entries = new ArrayList<LeaderboardEntry>();
@@ -167,7 +167,7 @@ public class SteamLeaderboards {
 
     public static final class GetLeaderboardsForGameResult {
 
-        List<LeaderBoard> leaderBoards;
+        public List<LeaderBoard> leaderBoards;
 
         public GetLeaderboardsForGameResult() {
             leaderBoards = new ArrayList<LeaderBoard>();

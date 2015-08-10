@@ -400,7 +400,7 @@ public class SteamMicroTxn {
         public long orderId;
         public long transId;
 
-        Agreement agreement;
+        public Agreement agreement;
 
         public ErrorCode errorCode;
         public String errorDesc;

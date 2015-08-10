@@ -284,6 +284,8 @@ public class SteamWebAPI {
 
                             try {
                                 JSONObject object = r.json(url).object();
+                                
+                                object = object.getJSONObject("response");
 
                                 result = SteamResult.byValue(object.getInt("result"));
 
