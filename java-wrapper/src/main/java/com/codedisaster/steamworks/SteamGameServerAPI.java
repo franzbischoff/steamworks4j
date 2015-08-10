@@ -18,17 +18,23 @@ public class SteamGameServerAPI {
 	static public boolean init(int ip, short steamPort, short gamePort, short queryPort,
 							   ServerMode serverMode, String versionString) {
 
-		isRunning = SteamSharedLibraryLoader.extractAndLoadLibraries() && nativeInit(
-				ip, steamPort, gamePort, queryPort, serverMode.ordinal(), versionString);
+		return init(null, ip, steamPort, gamePort, queryPort, serverMode, versionString);
+	}
+
+	static public boolean init(String pathToNativeLibraries,
+							   int ip, short steamPort, short gamePort, short queryPort,
+							   ServerMode serverMode, String versionString) {
+
+		boolean fromJar = pathToNativeLibraries == null || pathToNativeLibraries.endsWith(".jar");
+
+		isRunning = SteamSharedLibraryLoader.extractAndLoadLibraries(fromJar, pathToNativeLibraries);
+
+		isRunning = isRunning && nativeInit(ip, steamPort, gamePort, queryPort, serverMode.ordinal(), versionString);
 
 		return isRunning;
 	}
 
 	static public void shutdown() {
-		SteamGameServer.dispose();
-		SteamGameServerStats.dispose();
-		SteamNetworking.dispose();
-
 		isRunning = false;
 		nativeShutdown();
 	}
@@ -72,15 +78,15 @@ public class SteamGameServerAPI {
 		return SteamGameServer_GetSteamID();
 	*/
 
-	static public native long getSteamGameServerPointer(); /*
+	static native long getSteamGameServerPointer(); /*
 		return (long) SteamGameServer();
 	*/
 
-	static public native long getSteamGameServerNetworkingPointer(); /*
+	static native long getSteamGameServerNetworkingPointer(); /*
 		return (long) SteamGameServerNetworking();
 	*/
 
-	static public native long getSteamGameServerStatsPointer(); /*
+	static native long getSteamGameServerStatsPointer(); /*
 		return (long) SteamGameServerStats();
 	*/
 

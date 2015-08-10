@@ -6,6 +6,15 @@ import java.util.Scanner;
 
 public abstract class SteamTestApp {
 
+	private SteamUtils clUtils;
+
+	private SteamAPIWarningMessageHook clMessageHook = new SteamAPIWarningMessageHook() {
+		@Override
+		public void onWarningMessage(int severity, String message) {
+			System.err.println("[client debug message] (" + severity + ") " + message);
+		}
+	};
+
 	private class InputHandler implements Runnable {
 
 		private volatile boolean alive;
@@ -45,6 +54,8 @@ public abstract class SteamTestApp {
 
 	protected abstract void registerInterfaces();
 
+	protected abstract void unregisterInterfaces();
+
 	protected abstract void processUpdate() throws SteamException;
 
 	protected abstract void processInput(String input) throws SteamException;
@@ -53,11 +64,14 @@ public abstract class SteamTestApp {
 
 		System.out.println("Initialise Steam client API ...");
 
-		if (!SteamAPI.init()) {
+		if (!SteamAPI.init("../natives/libs")) {
 			return false;
 		}
 
 		registerInterfaces();
+
+		clUtils = new SteamUtils();
+		clUtils.setWarningMessageHook(clMessageHook);
 
 		InputHandler inputHandler = new InputHandler(Thread.currentThread());
 		new Thread(inputHandler).start();
@@ -77,6 +91,11 @@ public abstract class SteamTestApp {
 		}
 
 		System.out.println("Shutting down Steam client API ...");
+
+		clUtils.dispose();
+
+		unregisterInterfaces();
+
 		SteamAPI.shutdown();
 
 		return true;

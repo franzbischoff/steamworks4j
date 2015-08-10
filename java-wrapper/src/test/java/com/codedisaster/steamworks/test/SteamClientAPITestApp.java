@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 
 public class SteamClientAPITestApp extends SteamTestApp {
 
@@ -178,6 +179,29 @@ public class SteamClientAPITestApp extends SteamTestApp {
 
 			ugc.releaseQueryUserUGCRequest(query);
 		}
+
+		@Override
+		public void onSubscribeItem(SteamPublishedFileID publishedFileID, SteamResult result) {
+			System.out.println("Subscribe item result: publishedFileID=" + publishedFileID + ", result=" + result);
+		}
+
+		@Override
+		public void onUnsubscribeItem(SteamPublishedFileID publishedFileID, SteamResult result) {
+			System.out.println("Unsubscribe item result: publishedFileID=" + publishedFileID + ", result=" + result);
+		}
+
+		@Override
+		public void onRequestUGCDetails(SteamUGCDetails details, SteamResult result) {
+			System.out.println("Request details result: result=" + result);
+			System.out.println("UGC details " +
+					   ": publishedFileID=" + details.getPublishedFileID().toString() +
+					   ", result=" + details.getResult().toString() +
+					   ", title='" + details.getTitle() + "'" +
+					   ", description='" + details.getDescription() + "'" +
+					   ", fileName=" + details.getFileName() +
+					   ", fileHandle=" + details.getFileHandle().toString() +
+					   ", previewFileHandle=" + details.getPreviewFileHandle().toString());
+		}
 	};
 
 	private SteamFriendsCallback friendsCallback = new SteamFriendsCallback() {
@@ -205,29 +229,40 @@ public class SteamClientAPITestApp extends SteamTestApp {
 	protected void registerInterfaces() {
 
 		System.out.println("Register user ...");
-		user = new SteamUser(SteamAPI.getSteamUserPointer());
+		user = new SteamUser();
 
 		System.out.println("Register user stats callback ...");
-		userStats = new SteamUserStats(SteamAPI.getSteamUserStatsPointer(), userStatsCallback);
+		userStats = new SteamUserStats(userStatsCallback);
 
 		System.out.println("Register remote storage ...");
-		remoteStorage = new SteamRemoteStorage(SteamAPI.getSteamRemoteStoragePointer(), remoteStorageCallback);
+		remoteStorage = new SteamRemoteStorage(remoteStorageCallback);
 
 		System.out.println("Register UGC ...");
-		ugc = new SteamUGC(SteamAPI.getSteamUGCPointer(), ugcCallback);
+		ugc = new SteamUGC(ugcCallback);
 
 		System.out.println("Register Utils ...");
-		utils = new SteamUtils(SteamAPI.getSteamUtilsPointer());
+		utils = new SteamUtils();
 
 		System.out.println("Register Apps ...");
-		apps = new SteamApps(SteamAPI.getSteamAppsPointer());
+		apps = new SteamApps();
 
 		System.out.println("Register Friends ...");
-		friends = new SteamFriends(SteamAPI.getSteamFriendsPointer(), friendsCallback);
+		friends = new SteamFriends(friendsCallback);
 
 		System.out.println("Local user account ID: " + user.getSteamID().getAccountID());
 		System.out.println("App ID: " + utils.getAppID());
 
+	}
+
+	@Override
+	protected void unregisterInterfaces() {
+		user.dispose();
+		userStats.dispose();
+		remoteStorage.dispose();
+		ugc.dispose();
+		utils.dispose();
+		apps.dispose();
+		friends.dispose();
 	}
 
 	@Override
@@ -317,6 +352,41 @@ public class SteamClientAPITestApp extends SteamTestApp {
 			String name = input.substring("ugc download ".length());
 			SteamUGCHandle handle = new SteamUGCHandle(Long.parseLong(name, 16));
 			remoteStorage.ugcDownload(handle, 0);
+		} else if (input.startsWith("ugc subscribe ")) {
+			Long id = Long.parseLong(input.substring("ugc subscribe ".length()), 16);
+			ugc.subscribeItem(new SteamPublishedFileID(id));
+		} else if (input.startsWith("ugc unsubscribe ")) {
+			Long id = Long.parseLong(input.substring("ugc unsubscribe ".length()), 16);
+			ugc.unsubscribeItem(new SteamPublishedFileID(id));
+		} else if (input.startsWith("ugc state ")) {
+			Long id = Long.parseLong(input.substring("ugc state ".length()), 16);
+			Collection<SteamUGC.ItemState> itemStates = ugc.getItemState(new SteamPublishedFileID(id));
+			System.out.println("UGC item states: " + itemStates.size());
+			for (SteamUGC.ItemState itemState : itemStates) {
+				System.out.println("  " + itemState.name());
+			}
+		} else if (input.startsWith("ugc details ")) {
+			System.out.println("requesting UGC details (deprecated API call)");
+			Long id = Long.parseLong(input.substring("ugc details ".length()), 16);
+			ugc.requestUGCDetails(new SteamPublishedFileID(id), 0);
+
+			SteamUGCQuery query = ugc.createQueryUGCDetailsRequest(new SteamPublishedFileID(id));
+			if (query.isValid()) {
+				System.out.println("sending UGC details query: " + query.toString());
+				ugc.sendQueryUGCRequest(query);
+			}
+		} else if (input.startsWith("ugc info ")) {
+			Long id = Long.parseLong(input.substring("ugc info ".length()), 16);
+			SteamUGC.ItemInstallInfo installInfo = new SteamUGC.ItemInstallInfo();
+			if (ugc.getItemInstallInfo(new SteamPublishedFileID(id), installInfo)) {
+				System.out.println("  folder: " + installInfo.getFolder());
+				System.out.println("  size on disk: " + installInfo.getSizeOnDisk());
+			}
+			SteamUGC.ItemDownloadInfo downloadInfo = new SteamUGC.ItemDownloadInfo();
+			if (ugc.getItemDownloadInfo(new SteamPublishedFileID(id), downloadInfo)) {
+				System.out.println("  bytes downloaded: " + downloadInfo.getBytesDownloaded());
+				System.out.println("  bytes total: " + downloadInfo.getBytesTotal());
+			}
 		} else if (input.startsWith("leaderboard find ")) {
 			String name = input.substring("leaderboard find ".length());
 			userStats.findLeaderboard(name);

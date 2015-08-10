@@ -5,20 +5,20 @@ public class SteamAPI {
 	static private boolean isRunning = false;
 
 	static public boolean init() {
-		isRunning = SteamSharedLibraryLoader.extractAndLoadLibraries() && nativeInit();
+		return init(null);
+	}
+
+	static public boolean init(String pathToNativeLibraries) {
+		boolean fromJar = pathToNativeLibraries == null || pathToNativeLibraries.endsWith(".jar");
+
+		isRunning = SteamSharedLibraryLoader.extractAndLoadLibraries(fromJar, pathToNativeLibraries);
+
+		isRunning = isRunning && nativeInit();
+
 		return isRunning;
 	}
 
 	static public void shutdown() {
-		SteamApps.dispose();
-		SteamFriends.dispose();
-		SteamNetworking.dispose();
-		SteamRemoteStorage.dispose();
-		SteamUGC.dispose();
-		SteamUser.dispose();
-		SteamUserStats.dispose();
-		SteamUtils.dispose();
-
 		isRunning = false;
 		nativeShutdown();
 	}
@@ -33,6 +33,10 @@ public class SteamAPI {
 		#include <steam_api.h>
 
 		static JavaVM* staticVM = 0;
+	*/
+
+	static public native boolean restartAppIfNecessary(long appId); /*
+		return SteamAPI_RestartAppIfNecessary(appId);
 	*/
 
 	static private native boolean nativeInit(); /*
@@ -55,36 +59,36 @@ public class SteamAPI {
 		return SteamAPI_IsSteamRunning();
 	*/
 
-	static public native long getSteamAppsPointer(); /*
+	static native long getSteamAppsPointer(); /*
 		return (long) SteamApps();
 	*/
 
-	static public native long getSteamFriendsPointer(); /*
+	static native long getSteamFriendsPointer(); /*
 		return (long) SteamFriends();
 	*/
 
-	static public native long getSteamNetworkingPointer(); /*
+	static native long getSteamNetworkingPointer(); /*
 		return (long) SteamNetworking();
 	*/
 
-	static public native long getSteamUserPointer(); /*
-		return (long) SteamUser();
-	*/
-
-	static public native long getSteamUtilsPointer(); /*
-		return (long) SteamUtils();
-	*/
-
-	static public native long getSteamUserStatsPointer(); /*
-		return (long) SteamUserStats();
-	*/
-
-	static public native long getSteamRemoteStoragePointer(); /*
+	static native long getSteamRemoteStoragePointer(); /*
 		return (long) SteamRemoteStorage();
 	*/
 
-	static public native long getSteamUGCPointer(); /*
+	static native long getSteamUGCPointer(); /*
 		return (long) SteamUGC();
+	*/
+
+	static native long getSteamUserPointer(); /*
+		return (long) SteamUser();
+	*/
+
+	static native long getSteamUserStatsPointer(); /*
+		return (long) SteamUserStats();
+	*/
+
+	static native long getSteamUtilsPointer(); /*
+		return (long) SteamUtils();
 	*/
 
 }
